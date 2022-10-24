@@ -202,7 +202,6 @@ class FollowTests(PostTestCase):
             author=cls.user,
             group=cls.group,
         )
-        Follow.objects.create(user=cls.follower, author=cls.user)
 
     def test_profile_follow(self):
         """Авторизованный пользователь может подписываться
@@ -218,6 +217,7 @@ class FollowTests(PostTestCase):
         """Авторизованный пользователь может удалять
         других пользователей из подписок.
         """
+        Follow.objects.create(user=self.follower, author=self.user)
         follow_count = Follow.objects.count()
         self.authorized_follower.get(
             reverse('posts:profile_unfollow', kwargs={'username': self.user})
@@ -226,6 +226,7 @@ class FollowTests(PostTestCase):
 
     def test_follow_created_correct(self):
         """Новая запись пользователя появляется в ленте подписчиков."""
+        Follow.objects.create(user=self.follower, author=self.user)
         response = self.authorized_follower.get(reverse('posts:follow_index'))
         first_object = response.context['page_obj'][0]
         self.assertEqual(first_object, self.post)
