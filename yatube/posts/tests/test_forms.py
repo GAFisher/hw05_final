@@ -1,29 +1,11 @@
-import shutil
-import tempfile
-
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
 from django.urls import reverse
 
 from .base_testcase import PostTestCase
-from ..forms import PostForm, CommentForm
 from ..models import Post, Comment
 
-TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
-
-@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostCreateFormTests(PostTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.form = PostForm()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def test_create_post(self):
         """Валидная форма создает запись в Post."""
@@ -87,10 +69,6 @@ class PostCreateFormTests(PostTestCase):
 
 
 class CommentCreateFormTests(PostTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.form = CommentForm()
 
     def test_create_comment(self):
         """Валидная форма создает запись в Comment."""

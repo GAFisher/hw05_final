@@ -13,7 +13,7 @@ class PostURLTests(PostTestCase):
             f'/posts/{self.post.id}/',
         )
         for url in url_names:
-            with self.subTest():
+            with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -26,34 +26,29 @@ class PostURLTests(PostTestCase):
 
     def test_urls_exists_at_desired_location_authorized_client(self):
         """Страница доступна авторизованному пользователю."""
-        response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        url_names = ('/create/', '/follow/')
+        for url in url_names:
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_create_url_redirect_anonymous_on_admin_login(self):
-        """Страница по адресу /create/ перенаправит анонимного
-        пользователя на страницу логина."""
-        response = self.client.get('/create/', follow=True)
-        self.assertRedirects(response, '/auth/login/?next=/create/')
-
-    def test_posts_edit_url_redirect_anonymous_on_admin_login(self):
-        """Страница по адресу /edit/ перенаправит анонимного
-        пользователя на страницу логина."""
-        response = self.client.get(
-            f'/posts/{self.post.id}/edit/', follow=True
-        )
-        self.assertRedirects(
-            response, f'/auth/login/?next=/posts/{self.post.id}/edit/'
-        )
-
-    def test_add_comment_url_redirect_anonymous_on_admin_login(self):
-        """Страница по адресу /comment/ перенаправит анонимного
-        пользователя на страницу логина."""
-        response = self.client.get(
-            f'/posts/{self.post.id}/comment/', follow=True
-        )
-        self.assertRedirects(
-            response, f'/auth/login/?next=/posts/{self.post.id}/comment/'
-        )
+    def test_url_redirects_anonymous_on_admin_login(self):
+        """Страница перенаправит анонимного пользователя
+        на страницу логина."""
+        create_url = '/auth/login/?next=/create/'
+        posts_edit_url = f'/auth/login/?next=/posts/{self.post.id}/edit/'
+        add_comment_url = f'/auth/login/?next=/posts/{self.post.id}/comment/'
+        follow_url = '/auth/login/?next=/follow/'
+        url_names = {
+            '/create/': create_url,
+            f'/posts/{self.post.id}/edit/': posts_edit_url,
+            f'/posts/{self.post.id}/comment/': add_comment_url,
+            '/follow/': follow_url,
+        }
+        for url, redirect in url_names.items():
+            with self.subTest(url=url):
+                response = self.client.get(url, follow=True)
+                self.assertRedirects(response, redirect)
 
     def test_unexisting_page_url_exists_at_desired_location(self):
         """Проверяем, что несуществующая страница вернет ошибку 404."""
@@ -69,8 +64,9 @@ class PostURLTests(PostTestCase):
             f'/posts/{self.post.id}/': 'posts/post_detail.html',
             '/create/': 'posts/create_post.html',
             f'/posts/{self.post.id}/edit/': 'posts/create_post.html',
+            '/follow/': 'posts/follow.html',
         }
-        for address, template in templates_url_names.items():
-            with self.subTest(address=address):
-                response = self.authorized_client.get(address)
+        for url, template in templates_url_names.items():
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url)
                 self.assertTemplateUsed(response, template)
